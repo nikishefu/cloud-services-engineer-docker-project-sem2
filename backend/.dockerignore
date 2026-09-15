@@ -1,0 +1,10 @@
+app
+*.test
+*.out
+vendor/
+.idea/
+.vscode/
+.DS_Store
+*.md
+Dockerfile
+.dockerignore
