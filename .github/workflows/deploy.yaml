@@ -87,3 +87,4 @@ jobs:
           docker compose ps
           curl -f http://localhost/health
           curl -f http://localhost/momo-store/
+          curl -f http://localhost/api/products

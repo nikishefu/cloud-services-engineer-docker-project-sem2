@@ -3,17 +3,35 @@
 Демо-приложение пельменной: backend на Go (`:8081`) и frontend на Vue 3, собранный в статику и раздаваемый
 через nginx (хостовый порт `80`).
 
-## Запуск
+## Запуск 
 
+Предусмотрено два профиля в Docker Compose: dev и prod
+
+### dev
+Профиль публикует порт backend на хосте, по умолчанию `:8081`
 ```sh
-docker compose up -d --build
+COMPOSE_PROFILES=dev docker compose up --build -d
 ```
 
-- Frontend: http://localhost/
-- Backend API: http://localhost:8081
-
+Завершение работы:
 ```sh
-docker compose down
+COMPOSE_PROFILES=dev docker compose down --remove-orphans
+```
+
+### prod
+В этом профиле backend доступен только по внутренней сети и проксируется через /api
+```sh
+COMPOSE_PROFILES=prod docker compose up --build -d
+```
+
+Также в профиле prod возможно масштабирование:
+```sh
+COMPOSE_PROFILES=prod docker compose up --build -d --scale backend=3
+```
+
+Завершение работы:
+```sh
+COMPOSE_PROFILES=prod docker compose down --remove-orphans
 ```
 
 ## Образы
@@ -28,15 +46,17 @@ docker compose down
 `VUE_APP_API_URL` — build arg для frontend, зашивается в фронтенд на этапе сборки. У backend'а
 конфигурируемых параметров пока нет.
 
+Публикуемые хостовые порты настраиваются через `.env` (или переменные окружения):
+
+- `FRONTEND_PORT` (по умолчанию `80`),
+- `BACKEND_PORT` (по умолчанию `8081`).
+
 ## Безопасность
 
 Оба контейнера: без root, `cap_drop: [ALL]`, `no-new-privileges`, read-only корневая ФС, лимиты CPU/памяти.
+
 Образы собираются и сканируются Trivy в CI (`.github/workflows/deploy.yaml`) перед пушем в DockerHub —
-сканирование сейчас информативное, пуш не блокирует. В самом приложении нет секретов; данные для DockerHub
+сканирование сейчас информативное, пуш не блокирует.
+
+В самом приложении нет секретов; данные для DockerHub
 лежат в GitHub Actions Secrets.
-
-## Известные ограничения
-
-- Нет горизонтального масштабирования — backend хранит состояние в памяти, порт `8081:8081` не даст поднять
-  больше одной реплики.
-- У базовых образов зафиксированы версии
